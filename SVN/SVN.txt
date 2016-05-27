@@ -1,0 +1,141 @@
+SVN Server Installation and configuration:-
+
+OS: fedora 23
+Description: 
+It needs subversion and httpd server to access the 
+SVN in browser. If you want to protect SVN, install
+mod_dav_svn module in httpd server
+
+3 Things:-
+- httpd server installation
+- subversion installation & configuration
+- adding security layer over subversion
+
+
+###############################################################
+
+$ sudo su
+
+# 1.1) Install httpd web server
+$ dnf install httpd
+
+# 1.2) Start web server
+$ systemctl start httpd.serice
+
+# 1.3) Add this program to system startup
+$ systemctl enable httpd.service
+
+# 1.4) List your active firewalld zone
+$ firewall-cmd --get-active-zones
+O/P:- 
+public
+  interfaces: wlp1s0
+
+# 1.5) Add New Rule to Firewalld
+$ firewall-cmd --permanent --zone=public --add-service=http
+
+# 1.6) Restart firewall
+$ systemctl restart firewalld.service
+
+# 1.7) Test your server startup
+http://localhost
+
+###############################################################
+
+# 2.1) SVN installation
+$ dnf install subversion
+
+# 2.2) Create SVN user for testing purpose
+# Can view SVN in broswer http://localhost/svn/testrepo/
+$ htpasswd -c -m /etc/svn-auth-users testuser
+# Can commit changes in SVN
+$ htpasswd -c -m /etc/svn-auth-users testuser2 
+
+# 2.3) Create and configure SVN repository
+$ mkdir /var/www/svn
+$ cd /var/www/svn
+$ svnadmin create testrepo
+$ chown -R apache.apache testrepo
+ 
+# 2.4) SELinux configuration
+## If you have SELinux enabled (you can check it with "sestatus" command) ##
+## then change SELinux security context with chcon command ##
+chcon -R -t httpd_sys_content_t /var/www/svn/testrepo
+ 
+## Following enables commits over http
+chcon -R -t httpd_sys_rw_content_t /var/www/svn/testrepo
+
+# 2.5) Access SVN url in browser. you will get "testrepo - Revision 0: /"
+http://localhost/svn/testrepo 
+
+###############################################################
+
+# 3.1) If you want to add authetication mechanism to your SVN
+$ dnf install mod_dav_svn
+
+# 3.2) Create SVN access control file
+$ vi /etc/svn-access-control
+[groups]
+testgroup = testuser1, testuser2
+testgroup2 = testuser3, testuser4, testuser5
+testgroup3 = testuser6, testuser7
+ 
+[/]
+* = r
+@testgroup = rw
+testuser4 = rw
+ 
+[testrepo:/]
+@testgroup2 = rw
+testuser6 = rw
+ 
+[testrepo2:/trunk]
+@testgroup3 = rw
+testuser5 = rw
+ 
+[testrepo2:/tags]
+@testgroup3 = r
+testuser5 = rw
+
+
+# 3.3) Create a following file and fill the content
+$ vi /etc/httpd/conf.d/subversion.conf
+LoadModule dav_svn_module     modules/mod_dav_svn.so
+LoadModule authz_svn_module   modules/mod_authz_svn.so
+
+<Location /svn>
+   DAV svn
+   SVNParentPath /var/www/svn
+   AuthType Basic
+   AuthName "Subversion repositories"
+   AuthUserFile /etc/svn-auth-users
+   AuthzSVNAccessFile /etc/svn-access-control
+   Require valid-user
+</Location>
+
+# 3.4) Configure repository open the file
+$ vi /var/www/svn/testrepo/conf/svnserve.conf
+## Disable anonymous access ##
+anon-access = none
+ 
+## Enable access control ##
+authz-db = authz
+
+# 3.5) Create trunk, branches and tags structure under testrepo
+$ mkdir -p /tmp/svn-structure-template/{trunk,branches,tags}
+# Import files to SVN
+$ svn import -m 'Initial import' /tmp/svn-structure-template/ http://localhost/svn/testrepo/
+
+# 3.6) Access SVN url, All folders should display
+http://localhost/svn/testrepo
+
+
+
+
+
+
+
+
+
+
+

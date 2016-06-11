@@ -1,0 +1,194 @@
+mysql-5.7.12-1.fc23.x86_64.rpm-bundle.tar
+----------------------------------------------------------------------------------------------------
+1. Verify MySQL is not installed:
+
+$ ls -l /usr/share/mysql
+ls: /usr/share/mysql: No such file or directory
+
+$ sudo useradd mysql
+
+$ sudo groupadd mysql
+
+$ mkdir /opt/MySQL
+
+
+2. Unpack MySQL RPMs to an unusual location -- here /opt/MySQL:
+
+$ rpm2cpio mysql-community-server-5.7.12-1.fc23.x86_64.rpm | pax -r -s ",^./usr/,/opt/MySQL/,p" -s ",.*,,p"
+
+$ rpm2cpio mysql-community-client-5.7.12-1.fc23.x86_64.rpm | pax -r -s ",^./usr/,/opt/MySQL/,p" -s ",.*,,p"
+
+
+3. Try to run it.
+
+$ sudo mkdir -p /var/lib/mysql /var/lib/mysql-files /var/lib/mysql-keyring /var/run/mysqld/
+
+$ sudo /opt/MySQL/sbin/mysqld --initialize
+
+$ sudo chown -R mysql:mysql /var/lib/mysql /var/run/mysqld/
+
+$ sudo ln -s /opt/MySQL/share/mysql /usr/share/
+
+$ sudo /opt/MySQL/sbin/mysqld --no-defaults --basedir=/opt/MySQL --datadir=/var/lib/mysql --socket=/var/run/mysqld/mysqld --port=3306 --user=mysql
+mysqld starts.
+
+
+4. Login to MySQL
+
+$ /opt/MySQL/bin/mysql -h 127.0.0.1 -P 3306 -u root -p
+
+
+5. Change temporary password
+
+$ set PASSWORD = PASSWORD('newpassword');
+
+
+6. Create symlink for mysql client
+
+$ sudo ln -s /opt/MySQL/bin/mysql /bin/mysql
+
+
+-----------------------------------------------------------------------------------------------------
+Installation log trace
+-----------------------------------------------------------------------------------------------------
+[root@localhost t]# rpm2cpio mysql-community-client-5.7.12-1.fc23.x86_64.rpm | pax -r -s ",^./usr/,/opt/MySQL/,p" -s ",.*,,p"
+./usr/bin/mysql >> /opt/MySQL/bin/mysql
+./usr/bin/mysql_config >> /opt/MySQL/bin/mysql_config
+./usr/bin/mysql_config-64 >> /opt/MySQL/bin/mysql_config-64
+./usr/bin/mysql_config_editor >> /opt/MySQL/bin/mysql_config_editor
+./usr/bin/mysqladmin >> /opt/MySQL/bin/mysqladmin
+./usr/bin/mysqlbinlog >> /opt/MySQL/bin/mysqlbinlog
+./usr/bin/mysqlcheck >> /opt/MySQL/bin/mysqlcheck
+./usr/bin/mysqldump >> /opt/MySQL/bin/mysqldump
+./usr/bin/mysqlimport >> /opt/MySQL/bin/mysqlimport
+./usr/bin/mysqlpump >> /opt/MySQL/bin/mysqlpump
+./usr/bin/mysqlshow >> /opt/MySQL/bin/mysqlshow
+./usr/bin/mysqlslap >> /opt/MySQL/bin/mysqlslap
+./usr/share/doc/mysql-community-client >> /opt/MySQL/share/doc/mysql-community-client
+./usr/share/doc/mysql-community-client/COPYING >> /opt/MySQL/share/doc/mysql-community-client/COPYING
+./usr/share/doc/mysql-community-client/README >> /opt/MySQL/share/doc/mysql-community-client/README
+./usr/share/man/man1/mysql.1.gz >> /opt/MySQL/share/man/man1/mysql.1.gz
+./usr/share/man/man1/mysql_config_editor.1.gz >> /opt/MySQL/share/man/man1/mysql_config_editor.1.gz
+./usr/share/man/man1/mysqladmin.1.gz >> /opt/MySQL/share/man/man1/mysqladmin.1.gz
+./usr/share/man/man1/mysqlbinlog.1.gz >> /opt/MySQL/share/man/man1/mysqlbinlog.1.gz
+./usr/share/man/man1/mysqlcheck.1.gz >> /opt/MySQL/share/man/man1/mysqlcheck.1.gz
+./usr/share/man/man1/mysqldump.1.gz >> /opt/MySQL/share/man/man1/mysqldump.1.gz
+./usr/share/man/man1/mysqlimport.1.gz >> /opt/MySQL/share/man/man1/mysqlimport.1.gz
+./usr/share/man/man1/mysqlpump.1.gz >> /opt/MySQL/share/man/man1/mysqlpump.1.gz
+./usr/share/man/man1/mysqlshow.1.gz >> /opt/MySQL/share/man/man1/mysqlshow.1.gz
+./usr/share/man/man1/mysqlslap.1.gz >> /opt/MySQL/share/man/man1/mysqlslap.1.gz
+
+[root@localhost t]# rpm2cpio mysql-community-server-5.7.12-1.fc23.x86_64.rpm | pax -r -s ",^./usr/,/opt/MySQL/,p" -s ",.*,,p"
+./etc/logrotate.d/mysql >> 
+./etc/my.cnf >> 
+./etc/my.cnf.d >> 
+./usr/bin/innochecksum >> /opt/MySQL/bin/innochecksum
+./usr/bin/lz4_decompress >> /opt/MySQL/bin/lz4_decompress
+./usr/bin/my_print_defaults >> /opt/MySQL/bin/my_print_defaults
+./usr/bin/myisam_ftdump >> /opt/MySQL/bin/myisam_ftdump
+./usr/bin/myisamchk >> /opt/MySQL/bin/myisamchk
+./usr/bin/myisamlog >> /opt/MySQL/bin/myisamlog
+./usr/bin/myisampack >> /opt/MySQL/bin/myisampack
+./usr/bin/mysql_install_db >> /opt/MySQL/bin/mysql_install_db
+./usr/bin/mysql_plugin >> /opt/MySQL/bin/mysql_plugin
+./usr/bin/mysql_secure_installation >> /opt/MySQL/bin/mysql_secure_installation
+./usr/bin/mysql_ssl_rsa_setup >> /opt/MySQL/bin/mysql_ssl_rsa_setup
+./usr/bin/mysql_tzinfo_to_sql >> /opt/MySQL/bin/mysql_tzinfo_to_sql
+./usr/bin/mysql_upgrade >> /opt/MySQL/bin/mysql_upgrade
+./usr/bin/mysqld_pre_systemd >> /opt/MySQL/bin/mysqld_pre_systemd
+./usr/bin/mysqldumpslow >> /opt/MySQL/bin/mysqldumpslow
+./usr/bin/perror >> /opt/MySQL/bin/perror
+./usr/bin/replace >> /opt/MySQL/bin/replace
+./usr/bin/resolve_stack_dump >> /opt/MySQL/bin/resolve_stack_dump
+./usr/bin/resolveip >> /opt/MySQL/bin/resolveip
+./usr/bin/zlib_decompress >> /opt/MySQL/bin/zlib_decompress
+./usr/lib/systemd/system/mysqld.service >> /opt/MySQL/lib/systemd/system/mysqld.service
+./usr/lib/tmpfiles.d/mysql.conf >> /opt/MySQL/lib/tmpfiles.d/mysql.conf
+./usr/lib64/mysql/plugin >> /opt/MySQL/lib64/mysql/plugin
+./usr/lib64/mysql/plugin/adt_null.so >> /opt/MySQL/lib64/mysql/plugin/adt_null.so
+./usr/lib64/mysql/plugin/auth_socket.so >> /opt/MySQL/lib64/mysql/plugin/auth_socket.so
+./usr/lib64/mysql/plugin/debug >> /opt/MySQL/lib64/mysql/plugin/debug
+./usr/lib64/mysql/plugin/debug/adt_null.so >> /opt/MySQL/lib64/mysql/plugin/debug/adt_null.so
+./usr/lib64/mysql/plugin/debug/auth_socket.so >> /opt/MySQL/lib64/mysql/plugin/debug/auth_socket.so
+./usr/lib64/mysql/plugin/debug/ha_example.so >> /opt/MySQL/lib64/mysql/plugin/debug/ha_example.so
+./usr/lib64/mysql/plugin/debug/innodb_engine.so >> /opt/MySQL/lib64/mysql/plugin/debug/innodb_engine.so
+./usr/lib64/mysql/plugin/debug/keyring_file.so >> /opt/MySQL/lib64/mysql/plugin/debug/keyring_file.so
+./usr/lib64/mysql/plugin/debug/libmemcached.so >> /opt/MySQL/lib64/mysql/plugin/debug/libmemcached.so
+./usr/lib64/mysql/plugin/debug/libpluginmecab.so >> /opt/MySQL/lib64/mysql/plugin/debug/libpluginmecab.so
+./usr/lib64/mysql/plugin/debug/locking_service.so >> /opt/MySQL/lib64/mysql/plugin/debug/locking_service.so
+./usr/lib64/mysql/plugin/debug/mypluglib.so >> /opt/MySQL/lib64/mysql/plugin/debug/mypluglib.so
+./usr/lib64/mysql/plugin/debug/mysql_no_login.so >> /opt/MySQL/lib64/mysql/plugin/debug/mysql_no_login.so
+./usr/lib64/mysql/plugin/debug/mysqlx.so >> /opt/MySQL/lib64/mysql/plugin/debug/mysqlx.so
+./usr/lib64/mysql/plugin/debug/rewrite_example.so >> /opt/MySQL/lib64/mysql/plugin/debug/rewrite_example.so
+./usr/lib64/mysql/plugin/debug/rewriter.so >> /opt/MySQL/lib64/mysql/plugin/debug/rewriter.so
+./usr/lib64/mysql/plugin/debug/semisync_master.so >> /opt/MySQL/lib64/mysql/plugin/debug/semisync_master.so
+./usr/lib64/mysql/plugin/debug/semisync_slave.so >> /opt/MySQL/lib64/mysql/plugin/debug/semisync_slave.so
+./usr/lib64/mysql/plugin/debug/validate_password.so >> /opt/MySQL/lib64/mysql/plugin/debug/validate_password.so
+./usr/lib64/mysql/plugin/debug/version_token.so >> /opt/MySQL/lib64/mysql/plugin/debug/version_token.so
+./usr/lib64/mysql/plugin/ha_example.so >> /opt/MySQL/lib64/mysql/plugin/ha_example.so
+./usr/lib64/mysql/plugin/innodb_engine.so >> /opt/MySQL/lib64/mysql/plugin/innodb_engine.so
+./usr/lib64/mysql/plugin/keyring_file.so >> /opt/MySQL/lib64/mysql/plugin/keyring_file.so
+./usr/lib64/mysql/plugin/libmemcached.so >> /opt/MySQL/lib64/mysql/plugin/libmemcached.so
+./usr/lib64/mysql/plugin/libpluginmecab.so >> /opt/MySQL/lib64/mysql/plugin/libpluginmecab.so
+./usr/lib64/mysql/plugin/locking_service.so >> /opt/MySQL/lib64/mysql/plugin/locking_service.so
+./usr/lib64/mysql/plugin/mypluglib.so >> /opt/MySQL/lib64/mysql/plugin/mypluglib.so
+./usr/lib64/mysql/plugin/mysql_no_login.so >> /opt/MySQL/lib64/mysql/plugin/mysql_no_login.so
+./usr/lib64/mysql/plugin/mysqlx.so >> /opt/MySQL/lib64/mysql/plugin/mysqlx.so
+./usr/lib64/mysql/plugin/rewrite_example.so >> /opt/MySQL/lib64/mysql/plugin/rewrite_example.so
+./usr/lib64/mysql/plugin/rewriter.so >> /opt/MySQL/lib64/mysql/plugin/rewriter.so
+./usr/lib64/mysql/plugin/semisync_master.so >> /opt/MySQL/lib64/mysql/plugin/semisync_master.so
+./usr/lib64/mysql/plugin/semisync_slave.so >> /opt/MySQL/lib64/mysql/plugin/semisync_slave.so
+./usr/lib64/mysql/plugin/validate_password.so >> /opt/MySQL/lib64/mysql/plugin/validate_password.so
+./usr/lib64/mysql/plugin/version_token.so >> /opt/MySQL/lib64/mysql/plugin/version_token.so
+./usr/sbin/mysqld >> /opt/MySQL/sbin/mysqld
+./usr/sbin/mysqld-debug >> /opt/MySQL/sbin/mysqld-debug
+./usr/share/doc/mysql-community-server >> /opt/MySQL/share/doc/mysql-community-server
+./usr/share/doc/mysql-community-server/COPYING >> /opt/MySQL/share/doc/mysql-community-server/COPYING
+./usr/share/doc/mysql-community-server/ChangeLog >> /opt/MySQL/share/doc/mysql-community-server/ChangeLog
+./usr/share/doc/mysql-community-server/INFO_BIN >> /opt/MySQL/share/doc/mysql-community-server/INFO_BIN
+./usr/share/doc/mysql-community-server/INFO_SRC >> /opt/MySQL/share/doc/mysql-community-server/INFO_SRC
+./usr/share/doc/mysql-community-server/README >> /opt/MySQL/share/doc/mysql-community-server/README
+./usr/share/doc/mysql-community-server/my-default.cnf >> /opt/MySQL/share/doc/mysql-community-server/my-default.cnf
+./usr/share/man/man1/innochecksum.1.gz >> /opt/MySQL/share/man/man1/innochecksum.1.gz
+./usr/share/man/man1/lz4_decompress.1.gz >> /opt/MySQL/share/man/man1/lz4_decompress.1.gz
+./usr/share/man/man1/my_print_defaults.1.gz >> /opt/MySQL/share/man/man1/my_print_defaults.1.gz
+./usr/share/man/man1/myisam_ftdump.1.gz >> /opt/MySQL/share/man/man1/myisam_ftdump.1.gz
+./usr/share/man/man1/myisamchk.1.gz >> /opt/MySQL/share/man/man1/myisamchk.1.gz
+./usr/share/man/man1/myisamlog.1.gz >> /opt/MySQL/share/man/man1/myisamlog.1.gz
+./usr/share/man/man1/myisampack.1.gz >> /opt/MySQL/share/man/man1/myisampack.1.gz
+./usr/share/man/man1/mysql.server.1.gz >> /opt/MySQL/share/man/man1/mysql.server.1.gz
+./usr/share/man/man1/mysql_install_db.1.gz >> /opt/MySQL/share/man/man1/mysql_install_db.1.gz
+./usr/share/man/man1/mysql_plugin.1.gz >> /opt/MySQL/share/man/man1/mysql_plugin.1.gz
+./usr/share/man/man1/mysql_secure_installation.1.gz >> /opt/MySQL/share/man/man1/mysql_secure_installation.1.gz
+./usr/share/man/man1/mysql_ssl_rsa_setup.1.gz >> /opt/MySQL/share/man/man1/mysql_ssl_rsa_setup.1.gz
+./usr/share/man/man1/mysql_tzinfo_to_sql.1.gz >> /opt/MySQL/share/man/man1/mysql_tzinfo_to_sql.1.gz
+./usr/share/man/man1/mysql_upgrade.1.gz >> /opt/MySQL/share/man/man1/mysql_upgrade.1.gz
+./usr/share/man/man1/mysqld_multi.1.gz >> /opt/MySQL/share/man/man1/mysqld_multi.1.gz
+./usr/share/man/man1/mysqld_safe.1.gz >> /opt/MySQL/share/man/man1/mysqld_safe.1.gz
+./usr/share/man/man1/mysqldumpslow.1.gz >> /opt/MySQL/share/man/man1/mysqldumpslow.1.gz
+./usr/share/man/man1/mysqlman.1.gz >> /opt/MySQL/share/man/man1/mysqlman.1.gz
+./usr/share/man/man1/perror.1.gz >> /opt/MySQL/share/man/man1/perror.1.gz
+./usr/share/man/man1/replace.1.gz >> /opt/MySQL/share/man/man1/replace.1.gz
+./usr/share/man/man1/resolve_stack_dump.1.gz >> /opt/MySQL/share/man/man1/resolve_stack_dump.1.gz
+./usr/share/man/man1/resolveip.1.gz >> /opt/MySQL/share/man/man1/resolveip.1.gz
+./usr/share/man/man1/zlib_decompress.1.gz >> /opt/MySQL/share/man/man1/zlib_decompress.1.gz
+./usr/share/man/man8/mysqld.8.gz >> /opt/MySQL/share/man/man8/mysqld.8.gz
+./usr/share/mysql/dictionary.txt >> /opt/MySQL/share/mysql/dictionary.txt
+./usr/share/mysql/fill_help_tables.sql >> /opt/MySQL/share/mysql/fill_help_tables.sql
+./usr/share/mysql/innodb_memcached_config.sql >> /opt/MySQL/share/mysql/innodb_memcached_config.sql
+./usr/share/mysql/install_rewriter.sql >> /opt/MySQL/share/mysql/install_rewriter.sql
+./usr/share/mysql/magic >> /opt/MySQL/share/mysql/magic
+./usr/share/mysql/my-default.cnf >> /opt/MySQL/share/mysql/my-default.cnf
+./usr/share/mysql/mysql-log-rotate >> /opt/MySQL/share/mysql/mysql-log-rotate
+./usr/share/mysql/mysql_security_commands.sql >> /opt/MySQL/share/mysql/mysql_security_commands.sql
+./usr/share/mysql/mysql_sys_schema.sql >> /opt/MySQL/share/mysql/mysql_sys_schema.sql
+./usr/share/mysql/mysql_system_tables.sql >> /opt/MySQL/share/mysql/mysql_system_tables.sql
+./usr/share/mysql/mysql_system_tables_data.sql >> /opt/MySQL/share/mysql/mysql_system_tables_data.sql
+./usr/share/mysql/mysql_test_data_timezone.sql >> /opt/MySQL/share/mysql/mysql_test_data_timezone.sql
+./usr/share/mysql/uninstall_rewriter.sql >> /opt/MySQL/share/mysql/uninstall_rewriter.sql
+./var/lib/mysql >> 
+./var/lib/mysql-files >> 
+./var/lib/mysql-keyring >> 
+./var/run/mysqld >> 
+[root@localhost t]# 
+

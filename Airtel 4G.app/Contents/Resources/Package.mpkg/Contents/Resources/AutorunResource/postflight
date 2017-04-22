@@ -1,0 +1,103 @@
+#!/bin/sh
+
+source "$1/Contents/Resources/common"
+
+newdst_profile="$dst_demon/Contents/Resources/swapper_monitor_profile.plist"
+
+#
+#check the exist Mac_DeviceMonitor Version on PC. If Mac_DeviceMonitor version in package is higher than
+#the Mac_DeviceMonitor that has already installed on PC ,it will update to new version
+#
+if [ -e "$dst_demon" ]; then
+installedSwapperInfoPath="$dst_demon/Contents/Info"
+installedSwapperInfo=`defaults read "$installedSwapperInfoPath" "CFBundleVersion"`
+installedFirstPart=${installedSwapperInfo%%.*}
+installedSecondPart=${installedSwapperInfo#*.}
+installedSecondPart=${installedSecondPart%%.*}
+installedThirdPart=${installedSwapperInfo##*.}
+
+packageSwapperInfoPath="$src_demon/Contents/Info"
+packageSwapperInfo=`defaults read "$packageSwapperInfoPath" "CFBundleVersion"`
+packageFirstPart=${packageSwapperInfo%%.*}
+packageSecondPart=${packageSwapperInfo#*.}
+packageSecondPart=${packageSecondPart%%.*}
+packageThirdPart=${packageSwapperInfo##*.}
+if [ "$packageFirstPart" -gt "$installedFirstPart" ]; then
+	if [  -e "$dst_demon" ]; then
+		rm -Rf "$dst_demon"
+		cp -Rf "$src_demon" "$dst_demon"
+		cp  -f "$src_profile" "$newdst_profile"
+	fi
+fi
+
+if [ "$packageFirstPart" -eq "$installedFirstPart" ]; then
+	if [ "$packageSecondPart" -gt "$installedSecondPart" ]; then
+		if [  -e "$dst_demon" ]; then
+			rm -Rf "$dst_demon"
+			cp -Rf "$src_demon" "$dst_demon"
+			cp  -f "$src_profile" "$newdst_profile"
+		fi
+	fi
+fi
+
+if [ "$packageFirstPart" -eq "$installedFirstPart" ]; then
+	if [ "$packageSecondPart" -eq "$installedSecondPart" ]; then
+		if [ "$packageThirdPart" -gt "$installedThirdPart" ]; then
+			if [  -e "$dst_demon" ]; then
+				rm -Rf "$dst_demon"
+				cp -Rf "$src_demon" "$dst_demon"
+				cp  -f "$src_profile" "$newdst_profile"
+			fi
+		fi
+	fi
+fi
+else  cp -Rf "$src_demon" "$dst_demon"
+	cp  -f "$src_profile" "$newdst_profile"
+fi
+
+#if [ -e "$dst_demon" ]; then
+#	rm -Rf "$dst_demon"
+#fi
+src_hostlessApp="$1/Contents/Resources/AutorunResource/HostlessDaemon.app"
+dst_hostlessApp="$dst_root/HostlessDaemon.app"
+if [ "x$UseHostlessDaemon" = "xYES" ]; then
+	if [ -e "$dst_hostlessApp" ]; then
+		rm -Rf "$dst_hostlessApp"
+	fi
+
+	cp -Rf "$src_hostlessApp" "$dst_hostlessApp"
+
+	if [ -e "$newdst_profile" ]  && [ -e "$dst_hostlessApp" ]; then
+		#defaults write "$dst_profile_domain"  "CallHostMacUIKey" -string "$app_root/$app_name"
+			 "$pkgDir/PlistTool" "HostlessDaemonAppPath" "$newdst_profile" "$dst_hostlessApp" "string"
+	fi
+fi
+"$pkgDir/PlistTool" "settings_path" "$dst_demon/Contents/Info.plist" "$pref_root/settings.plist" "string"
+
+if [ -e "$dst_demon/Contents/Info.plist" ]; then
+	#defaults write "$dst_demon/Contents/Info" swapper_monitor_profile_path -string "$dst_profile"
+        "$pkgDir/PlistTool" "swapper_monitor_profile_path" "$dst_demon/Contents/Info.plist" "$dst_profile" "string"
+fi
+
+if [ -e "$dst_profile" ]; then
+	#defaults write "$dst_profile_domain"  "CallHostMacUIKey" -string "$app_root/$app_name"
+        "$pkgDir/PlistTool" "CallHostMacUIKey" "$dst_profile_domain.plist" "$app_root/$app_name" "string"
+fi
+
+chown -R root:admin "$dst_demon"
+chmod -R 0775  "$dst_demon"
+
+echo "Copy profile to modemlist & change file permission ----"
+
+if [ -e "$dst_profile" ]; then
+	rm -f "$dst_profile"
+fi
+
+cp "$pkgDir/AutorunResource/DeviceMonitor.plist" "$Swapper_Config"
+
+cp  -f "$src_profile" "$dst_profile"
+chown root:admin "$dst_profile"
+chmod 0664 "$dst_profile"
+
+chown root:admin "$newdst_profile"
+chmod 0664 "$newdst_profile"

@@ -1,0 +1,33 @@
+#!/bin/sh
+
+#$1:key,$2:file path,$3:value,$4:type,$5:parent node
+
+if [ "x$1" = "x" ] || [ "x$2" = "x" ]  || [ "x$4" = "x" ]; then
+echo -e "#####plist key ,file , value or type must not be null!";
+exit
+fi
+echo "$2"
+if [ ! -e "$2" ]; then
+ echo -e "#####plist file is invalid!";
+ exit
+fi
+
+plistType="$4"
+if [ "X$plistType" = "X" ]; then
+ plistType="string"
+fi
+
+
+
+if [ "X$5" = "X" ];then
+  /usr/libexec/PlistBuddy "$2" -c "Delete :'$1' $plistType"
+  if [ "X$plistType" = "Xdict" ]; then
+    /usr/libexec/PlistBuddy "$2" -c "Add :'$1' $plistType"
+  else
+    /usr/libexec/PlistBuddy "$2" -c "Add :'$1' $plistType $3"
+  fi
+else
+  /usr/libexec/PlistBuddy "$2" -c "Delete :'$5':'$1' $plistType"
+  /usr/libexec/PlistBuddy "$2" -c "Add :'$5':'$1' $plistType $3"
+fi
+echo "#####PlistBuddyAdd:$?"

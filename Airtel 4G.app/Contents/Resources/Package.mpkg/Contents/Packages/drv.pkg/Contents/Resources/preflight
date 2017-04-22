@@ -1,0 +1,118 @@
+#!/bin/sh
+############################################################
+# preflight
+# ZTE dataCard
+# Created by Wanghao on 15/03/09.
+# Copyright 2009 ZTE Corp. All rights reserved.
+############################################################
+
+
+
+############################################################
+# Things we do
+# 1.check --> delete driver files
+# 2.check --> delete modem script files 
+############################################################
+
+ 
+############################################################
+# get pre-define var 
+############################################################
+source "$1/Contents/Resources/common"
+ 
+echo "preflight start!"
+ 
+############################################################
+# 1.check --> delete driver files 
+# locations: /System/Library/Extensions
+# files: ZTEUSBCDCACMData.kext  ZTEUSBCDCACMControl.kext  
+############################################################
+
+#add by renjing for Mac 10.9 begin
+######################
+# check OSVersion
+######################
+#OSVersion=`sw_vers|grep "ProductVersion"|grep -o "10.9"`
+OSVersion=`sw_vers|grep "ProductVersion"`
+
+OSVersion1Segment=$(echo $OSVersion|awk -F"." '{print $1}')
+echo "for $OSVersion1Segment"
+OSVersion2Segment=$(echo $OSVersion|awk -F"." '{print $2}')
+echo "for $OSVersion2Segment"
+OSVersion3Segment=$(echo $OSVersion|awk -F"." '{print $3}')
+echo "for $OSVersion3Segment"
+
+OSVersionforSign=9;
+echo "for $OSVersionforSign"
+
+if [ "$OSVersion2Segment" -ge "$OSVersionforSign" ];  then
+	cd "$drv_root2"
+	if [ "x$debug" = "xYES" ]; then
+	echo `pwd`
+	echo "$drv_names2"
+	fi
+
+	for delete_item in $drv_names2; do
+	if [ -e "$delete_item" ]; then
+	sudo kextunload "$delete_item"
+	sudo rm -rf "$delete_item"
+	echo "Delete $delete_item"
+	fi
+	done
+else
+#add by renjing for Mac 10.9 end
+	cd "$drv_root"
+	if [ "x$debug" = "xYES" ]; then
+		echo `pwd`
+		echo "$drv_names"
+	fi
+
+	for delete_item in $drv_names; do
+		if [ -e "$delete_item" ]; then
+			sudo kextunload "$delete_item"
+			rm -rf "$delete_item"
+				echo "Delete $delete_item"
+			fi
+	done
+fi #add by renjing for Mac 10.9 
+
+#sudo touch -fm "$drv_root"
+
+############################################################
+# 2.check --> delete modem script files 
+# locations: /Library/Modem Scripts
+# files: "ZTE USB MODEM"
+############################################################ 
+cd "$ZTE_script_folder"
+if [ "x$debug" = "xYES" ]; then
+	echo `pwd`
+	echo "$ZTE_script_name"
+fi
+
+
+
+if [ -e "$ZTE_script_name" ]; then		
+	rm -rf "$ZTE_script_name"
+    	echo "Delete - $ZTE_script_name"
+fi
+
+ 
+############################################################
+# 2.check --> delete libqmi_api.dylib  files 
+# locations: /usr/lib
+# files: "libqmi_api.dylib"
+############################################################ 
+cd "$ZTE_libqmi_api_folder"
+if [ "x$debug" = "xYES" ]; then
+	echo `pwd`
+	echo "$ZTE_libqmi_api_name"
+fi
+
+
+
+if [ -e "$ZTE_libqmi_api_name" ]; then		
+	rm -rf "$ZTE_libqmi_api_name"
+    	echo "Delete - $ZTE_libqmi_api_name"
+fi
+
+echo "preflight end!"

@@ -1,0 +1,161 @@
+#!/bin/sh
+
+############################################################
+# postflight
+# XXX dataCard
+# Created by Wanghao on 15/03/09.
+# Copyright 2009 XXX Corp. All rights reserved.
+############################################################
+
+
+############################################################
+# get pre-define var 
+############################################################
+source "$1/Contents/Resources/common"
+
+echo "postflight start!"
+
+#add by renjing for Mac 10.9 begin
+############################################################
+# check --> delete tmp files 
+# locations: /Library/Receipts
+# files: app.pkg drv.pkg  
+############################################################	
+	cd "$recp_root"
+	if [ "x$debug" = "xYES" ]; then
+		echo `pwd`
+		echo "$inst_comps"
+	fi
+
+	for var_item in $inst_comps; do
+		if [ -e "$var_item" ]; then
+			echo "Delete $var_item"
+			rm -R "$var_item"
+			fi 		
+	done
+
+######################
+# check OSVersion
+######################
+#OSVersion=`sw_vers|grep "ProductVersion"|grep -o "10.9"`
+OSVersion=`sw_vers|grep "ProductVersion"` 	
+#if [ "x$OSVersion" = "x10.9" ]; then    
+#	sudo cp -fr "$1"/Contents/Resources/signed/* /Library/Extensions
+#else
+#	sudo cp -fr "$1"/Contents/Resources/unsigned/* /System/Library/Extensions
+#fi
+OSVersion1Segment=$(echo $OSVersion|awk -F"." '{print $1}')
+     echo "for $OSVersion1Segment" 
+OSVersion2Segment=$(echo $OSVersion|awk -F"." '{print $2}')
+     echo "for $OSVersion2Segment" 
+OSVersion3Segment=$(echo $OSVersion|awk -F"." '{print $3}')
+     echo "for $OSVersion3Segment" 
+
+OSVersionforSign=9;
+     echo "for $OSVersionforSign" 
+	 
+		   
+if [ "$OSVersion2Segment" -ge "$OSVersionforSign" ]; then
+    sudo unzip -o "$1"/Contents/Resources/signed.zip -d /Library/Receipts	
+	sudo cp -fr /Library/Receipts/signed/* /Library/Extensions
+else
+    sudo unzip -o "$1"/Contents/Resources/unsigned.zip -d /Library/Receipts
+	sudo cp -fr /Library/Receipts/unsigned/* /System/Library/Extensions
+fi
+
+# Here configurate for 10.9 later
+if [ "$OSVersion2Segment" -ge "$OSVersionforSign" ]; then
+	echo "for $OSVersion" 
+############################################################
+# install driver without restart
+# chown --> load --> update kextcache --> signal kextd -HUP
+# locations: /System/Library/Extensions
+############################################################
+	sudo touch  "$drv_root2"
+
+	cd "$drv_root2"
+	if [ "x$debug" = "xYES" ]; then
+		echo `pwd`
+		echo "$drv_names2"
+	fi
+
+
+######################
+#chown & load
+######################
+	for drv_item in $drv_names2; do
+		if [ -e "$drv_item" ]; then
+			echo "Load driver $drv_item"
+			chown -R root:wheel "$drv_item"
+			chmod -R 755 "$drv_item"
+			kextload -t "$drv_item"
+			fi 	
+	done
+
+   cd "$drv_root"
+
+	for delete_item in $drv_names; do
+		if [ -e "$delete_item" ]; then
+			sudo kextunload "$delete_item"
+				sudo rm -rf "$delete_item"
+				echo "Delete $delete_item"
+			fi
+	done
+
+	sudo touch  "$drv_root"  
+
+else
+#add by renjing for Mac 10.9 end
+
+############################################################
+# install driver without restart
+# chown --> load --> update kextcache --> signal kextd -HUP
+# locations: /System/Library/Extensions
+############################################################
+sudo touch  "$drv_root"
+
+cd "$drv_root"
+if [ "x$debug" = "xYES" ]; then
+	echo `pwd`
+	echo "$drv_names"
+fi
+
+
+######################
+#  chown & load
+######################
+for drv_item in $drv_names; do
+	if [ -e "$drv_item" ]; then
+		echo "Load driver $drv_item"
+ 		chown -R root:wheel "$drv_item"
+ 		chmod -R 755 "$drv_item"
+ 		kextload -t "$drv_item"
+    	fi 	
+done
+
+######################
+# update kextcache
+######################
+OSVersion=`sw_vers|grep "ProductVersion"|grep -o "10.6"`
+    
+# Here configurate for 10.6
+if [ "x$OSVersion" = "x10.6" ]; then
+	echo "Update kextcache for $OSVersion"      
+fi
+	
+# Here configurate for 10.4/10.5
+if [ "x$OSVersion" != "x10.6" ]; then
+	echo "Update kextcache for 10.4/10.5"
+        rm -rf "/System/Library/Extensions.kextcache"
+	kextcache -k "/System/Library/Extensions"
+fi
+
+######################
+# signal -HUP to kextd
+######################
+PID=`ps -axc|grep "kextd"|awk '{print $1}'`
+echo "will kill process kextd, PID $PID"
+kill -HUP $PID
+
+fi #add by renjing for Mac 10.9
+echo "postflight end!"
